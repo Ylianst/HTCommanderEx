@@ -905,11 +905,45 @@ class AppLocalizationsEn extends AppLocalizations {
       'Based on your call sign from the License tab';
 
   @override
+  String get settingsEchoLinkPasswordKeepBlank =>
+      'Leave blank to keep your current password.';
+
+  @override
   String get settingsEchoLinkLocation => 'Location';
 
   @override
   String get settingsEchoLinkLocationHelp =>
       'Shown to other stations in the directory, such as your city and state.';
+
+  @override
+  String get settingsEchoLinkProxyTitle => 'Network Connection';
+
+  @override
+  String get settingsEchoLinkProxyHelp =>
+      'Use an EchoLink proxy to connect from networks that block direct EchoLink traffic, such as mobile data behind carrier-grade NAT (CGNAT).';
+
+  @override
+  String get settingsEchoLinkProxyEnable => 'Connect through an EchoLink proxy';
+
+  @override
+  String get settingsEchoLinkProxyAuto => 'Select a public proxy automatically';
+
+  @override
+  String get settingsEchoLinkProxyAutoHelp =>
+      'Picks an available public proxy for you and reconnects to another if one is busy. Turn off to enter a specific proxy below.';
+
+  @override
+  String get settingsEchoLinkProxyHost => 'Proxy host';
+
+  @override
+  String get settingsEchoLinkProxyPort => 'Port';
+
+  @override
+  String get settingsEchoLinkProxyPassword => 'Proxy password';
+
+  @override
+  String get settingsEchoLinkProxyPasswordHelp =>
+      'Enter PUBLIC to use a public proxy. See www.echolink.org/proxylist.jsp for available public proxies.';
 
   @override
   String get settingsEchoLinkNoCallSign =>

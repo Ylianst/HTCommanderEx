@@ -883,10 +883,43 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsEchoLinkAccountHelp => '基于许可证选项卡中的呼号';
 
   @override
+  String get settingsEchoLinkPasswordKeepBlank => '留空以保留当前密码。';
+
+  @override
   String get settingsEchoLinkLocation => '位置';
 
   @override
   String get settingsEchoLinkLocationHelp => '在目录中向其他台站显示，例如您的城市和省份。';
+
+  @override
+  String get settingsEchoLinkProxyTitle => '网络连接';
+
+  @override
+  String get settingsEchoLinkProxyHelp =>
+      '使用 EchoLink 代理从阻止 EchoLink 直连流量的网络（例如运营商级 NAT（CGNAT）后的移动数据网络）进行连接。';
+
+  @override
+  String get settingsEchoLinkProxyEnable => '通过 EchoLink 代理连接';
+
+  @override
+  String get settingsEchoLinkProxyAuto => '自动选择公共代理';
+
+  @override
+  String get settingsEchoLinkProxyAutoHelp =>
+      '为您选择一个可用的公共代理，如果某个代理繁忙则重新连接到另一个。关闭此项可在下方输入特定代理。';
+
+  @override
+  String get settingsEchoLinkProxyHost => '代理主机';
+
+  @override
+  String get settingsEchoLinkProxyPort => '端口';
+
+  @override
+  String get settingsEchoLinkProxyPassword => '代理密码';
+
+  @override
+  String get settingsEchoLinkProxyPasswordHelp =>
+      '输入 PUBLIC 以使用公共代理。可用的公共代理请参见 www.echolink.org/proxylist.jsp。';
 
   @override
   String get settingsEchoLinkNoCallSign => '在许可证选项卡中输入您的呼号以启用 EchoLink。';

@@ -1744,6 +1744,12 @@ abstract class AppLocalizations {
   /// **'Based on your call sign from the License tab'**
   String get settingsEchoLinkAccountHelp;
 
+  /// No description provided for @settingsEchoLinkPasswordKeepBlank.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank to keep your current password.'**
+  String get settingsEchoLinkPasswordKeepBlank;
+
   /// No description provided for @settingsEchoLinkLocation.
   ///
   /// In en, this message translates to:
@@ -1755,6 +1761,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shown to other stations in the directory, such as your city and state.'**
   String get settingsEchoLinkLocationHelp;
+
+  /// No description provided for @settingsEchoLinkProxyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Network Connection'**
+  String get settingsEchoLinkProxyTitle;
+
+  /// No description provided for @settingsEchoLinkProxyHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an EchoLink proxy to connect from networks that block direct EchoLink traffic, such as mobile data behind carrier-grade NAT (CGNAT).'**
+  String get settingsEchoLinkProxyHelp;
+
+  /// No description provided for @settingsEchoLinkProxyEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect through an EchoLink proxy'**
+  String get settingsEchoLinkProxyEnable;
+
+  /// No description provided for @settingsEchoLinkProxyAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a public proxy automatically'**
+  String get settingsEchoLinkProxyAuto;
+
+  /// No description provided for @settingsEchoLinkProxyAutoHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Picks an available public proxy for you and reconnects to another if one is busy. Turn off to enter a specific proxy below.'**
+  String get settingsEchoLinkProxyAutoHelp;
+
+  /// No description provided for @settingsEchoLinkProxyHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy host'**
+  String get settingsEchoLinkProxyHost;
+
+  /// No description provided for @settingsEchoLinkProxyPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get settingsEchoLinkProxyPort;
+
+  /// No description provided for @settingsEchoLinkProxyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Proxy password'**
+  String get settingsEchoLinkProxyPassword;
+
+  /// No description provided for @settingsEchoLinkProxyPasswordHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter PUBLIC to use a public proxy. See www.echolink.org/proxylist.jsp for available public proxies.'**
+  String get settingsEchoLinkProxyPasswordHelp;
 
   /// No description provided for @settingsEchoLinkNoCallSign.
   ///

@@ -40,7 +40,11 @@ import '../services/data_broker_client.dart';
 import 'echolink_client.dart';
 import 'echolink_data_packet.dart';
 import 'echolink_directory.dart';
+import 'echolink_network.dart';
 import 'echolink_network_io.dart';
+import 'echolink_proxy.dart';
+import 'echolink_proxy_auto_network.dart';
+import 'echolink_proxy_network.dart';
 import 'echolink_station.dart';
 import 'pcm_resampler.dart';
 
@@ -74,6 +78,10 @@ class EchoLinkManager {
   bool _initialized = false;
   bool _opened = false;
   bool _reconciling = false;
+  // Signature of the transport config the live client was opened with. When the
+  // proxy settings change, this differs from the desired signature and the
+  // client is torn down and reopened so the change takes effect immediately.
+  String? _appliedNetworkKey;
 
   // Last station-info text surfaced to the Debug tab, to avoid re-logging the
   // identical roster a conference resends every few seconds.
@@ -196,6 +204,23 @@ class EchoLinkManager {
       callback: (_, _, _) => unawaited(_reconcile()),
     );
 
+    // Re-open the client when the proxy transport settings change so switching
+    // between direct and proxy (or editing the proxy host/port/password) takes
+    // effect immediately rather than only on the next launch.
+    for (final String key in const <String>[
+      'EchoLinkProxyEnabled',
+      'EchoLinkProxyAuto',
+      'EchoLinkProxyHost',
+      'EchoLinkProxyPort',
+      'EchoLinkProxyPassword',
+    ]) {
+      _broker.subscribe(
+        deviceId: 0,
+        name: key,
+        callback: (_, _, _) => unawaited(_reconcile()),
+      );
+    }
+
     // Track which device is selected in the main form so EchoLink audio only
     // reaches the shared output device while EchoLink is the selected device.
     _broker.subscribe(
@@ -236,16 +261,62 @@ class EchoLinkManager {
         return;
       }
 
-      if (_opened) return; // Already enabled with valid settings.
+      // Determine the desired transport (direct or proxy) from settings.
+      final bool proxyEnabled =
+          (_broker.getValue<int>(0, 'EchoLinkProxyEnabled', 0) ?? 0) == 1;
+      final bool proxyAuto =
+          (_broker.getValue<int>(0, 'EchoLinkProxyAuto', 1) ?? 1) == 1;
+      final String proxyHost =
+          (_broker.getValue<String>(0, 'EchoLinkProxyHost', '') ?? '').trim();
+      final int proxyPort = _broker.getValue<int>(
+              0, 'EchoLinkProxyPort', echoLinkProxyDefaultPort) ??
+          echoLinkProxyDefaultPort;
+      final String proxyPassword =
+          (_broker.getValue<String>(0, 'EchoLinkProxyPassword', '') ?? '')
+              .trim();
+      // Auto mode picks a public proxy on its own; manual mode needs a host.
+      final bool useAutoProxy = proxyEnabled && proxyAuto;
+      final bool useManualProxy =
+          proxyEnabled && !proxyAuto && proxyHost.isNotEmpty;
+      final String networkKey = useAutoProxy
+          ? 'proxy-auto'
+          : useManualProxy
+              ? 'proxy:$proxyHost:$proxyPort:$proxyPassword'
+              : 'direct';
+
+      if (_opened) {
+        // Already enabled; reopen only if the transport config changed.
+        if (networkKey == _appliedNetworkKey) return;
+        await _closeClient();
+        _broker.logInfo('[EchoLink] Reopening for transport change');
+      }
 
       final String location =
           _broker.getValue<String>(0, 'EchoLinkLocation', '') ?? '';
+
+      final EchoLinkNetwork network = useAutoProxy
+          ? (AutoEchoLinkProxyNetwork(
+              callsign: callsign,
+              password: proxyPassword.isEmpty
+                  ? echoLinkProxyPublicPassword
+                  : proxyPassword,
+            )..onDiagnostic = _onDiagnostic)
+          : useManualProxy
+              ? EchoLinkProxyNetwork(
+                  proxyHost: proxyHost,
+                  proxyPort: proxyPort,
+                  callsign: callsign,
+                  password: proxyPassword.isEmpty
+                      ? echoLinkProxyPublicPassword
+                      : proxyPassword,
+                )
+              : DartIoEchoLinkNetwork();
 
       final EchoLinkClient client = EchoLinkClient(
         localCallsign: callsign,
         localPassword: password,
         localInfo: location,
-        network: DartIoEchoLinkNetwork(),
+        network: network,
       )
         ..onAudio = _onRxAudio
         ..onChat = _onRxChat
@@ -257,13 +328,17 @@ class EchoLinkManager {
       try {
         await client.open();
         _opened = true;
+        _appliedNetworkKey = networkKey;
         _publishAvailable(true);
-        _broker.logInfo('[EchoLink] Client opened for $callsign');
+        _broker.logInfo(
+            '[EchoLink] Client opened for $callsign'
+            '${useAutoProxy ? ' via automatic public proxy' : useManualProxy ? ' via proxy $proxyHost:$proxyPort' : ''}');
         // Restore the previous session: go online (and reconnect the QSO
         // channel) if EchoLink was online when the app last closed.
         unawaited(_maybeAutoReconnectStation());
       } catch (e) {
         _client = null;
+        _appliedNetworkKey = null;
         _publishAvailable(false);
         _broker.logError('[EchoLink] Failed to open client: $e');
       }
@@ -278,6 +353,7 @@ class EchoLinkManager {
     final EchoLinkClient? client = _client;
     _client = null;
     _opened = false;
+    _appliedNetworkKey = null;
     _endRxRun();
     _stopTxPacing();
     _setTxActive(false);

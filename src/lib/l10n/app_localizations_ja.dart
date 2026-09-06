@@ -891,10 +891,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsEchoLinkAccountHelp => 'ライセンスタブのコールサインに基づきます';
 
   @override
+  String get settingsEchoLinkPasswordKeepBlank => '現在のパスワードを維持するには空欄のままにします。';
+
+  @override
   String get settingsEchoLinkLocation => '場所';
 
   @override
   String get settingsEchoLinkLocationHelp => '市区町村や都道府県など、ディレクトリ内で他の局に表示されます。';
+
+  @override
+  String get settingsEchoLinkProxyTitle => 'ネットワーク接続';
+
+  @override
+  String get settingsEchoLinkProxyHelp =>
+      'キャリアグレードNAT（CGNAT）背後のモバイルデータなど、直接のEchoLink通信をブロックするネットワークから接続するには、EchoLinkプロキシを使用します。';
+
+  @override
+  String get settingsEchoLinkProxyEnable => 'EchoLinkプロキシ経由で接続';
+
+  @override
+  String get settingsEchoLinkProxyAuto => 'パブリックプロキシを自動的に選択';
+
+  @override
+  String get settingsEchoLinkProxyAutoHelp =>
+      '利用可能なパブリックプロキシを自動的に選び、使用中の場合は別のプロキシに再接続します。特定のプロキシを下に入力するにはオフにします。';
+
+  @override
+  String get settingsEchoLinkProxyHost => 'プロキシホスト';
+
+  @override
+  String get settingsEchoLinkProxyPort => 'ポート';
+
+  @override
+  String get settingsEchoLinkProxyPassword => 'プロキシパスワード';
+
+  @override
+  String get settingsEchoLinkProxyPasswordHelp =>
+      'パブリックプロキシを使用するには PUBLIC と入力します。利用可能なパブリックプロキシは www.echolink.org/proxylist.jsp を参照してください。';
 
   @override
   String get settingsEchoLinkNoCallSign =>

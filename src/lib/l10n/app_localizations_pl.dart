@@ -912,11 +912,47 @@ class AppLocalizationsPl extends AppLocalizations {
       'Na podstawie Twojego znaku wywoławczego z zakładki Licencja';
 
   @override
+  String get settingsEchoLinkPasswordKeepBlank =>
+      'Pozostaw puste, aby zachować bieżące hasło.';
+
+  @override
   String get settingsEchoLinkLocation => 'Lokalizacja';
 
   @override
   String get settingsEchoLinkLocationHelp =>
       'Wyświetlane innym stacjom w katalogu, np. Twoje miasto i województwo.';
+
+  @override
+  String get settingsEchoLinkProxyTitle => 'Połączenie sieciowe';
+
+  @override
+  String get settingsEchoLinkProxyHelp =>
+      'Użyj serwera proxy EchoLink, aby łączyć się z sieci blokujących bezpośredni ruch EchoLink, takich jak dane komórkowe za NAT operatora (CGNAT).';
+
+  @override
+  String get settingsEchoLinkProxyEnable =>
+      'Połącz przez serwer proxy EchoLink';
+
+  @override
+  String get settingsEchoLinkProxyAuto =>
+      'Automatycznie wybierz publiczny serwer proxy';
+
+  @override
+  String get settingsEchoLinkProxyAutoHelp =>
+      'Wybiera dostępny publiczny serwer proxy i łączy się z innym, jeśli któryś jest zajęty. Wyłącz, aby wpisać konkretny serwer proxy poniżej.';
+
+  @override
+  String get settingsEchoLinkProxyHost => 'Host serwera proxy';
+
+  @override
+  String get settingsEchoLinkProxyPort => 'Port';
+
+  @override
+  String get settingsEchoLinkProxyPassword => 'Hasło serwera proxy';
+
+  @override
+  String get settingsEchoLinkProxyPasswordHelp =>
+      'Wpisz PUBLIC, aby użyć publicznego serwera proxy. Dostępne publiczne serwery proxy: www.echolink.org/proxylist.jsp.';
 
   @override
   String get settingsEchoLinkNoCallSign =>

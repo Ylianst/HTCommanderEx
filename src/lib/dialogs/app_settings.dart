@@ -57,6 +57,15 @@ class AppSettings {
   // EchoLink tab
   String echoLinkPassword;
   String echoLinkLocation;
+  // EchoLink proxy (Network Connection): tunnels EchoLink traffic through a
+  // proxy so it works from networks that block inbound UDP (e.g. mobile CGNAT).
+  bool echoLinkProxyEnabled;
+  // When true (and the proxy is enabled), a public proxy is chosen and
+  // connected automatically instead of using the manual host/port/password.
+  bool echoLinkProxyAuto;
+  String echoLinkProxyHost;
+  int echoLinkProxyPort;
+  String echoLinkProxyPassword;
 
   // Web Server tab
   bool webServerEnabled;
@@ -187,6 +196,11 @@ class AppSettings {
     this.winlinkUseStationId = false,
     this.echoLinkPassword = '',
     this.echoLinkLocation = '',
+    this.echoLinkProxyEnabled = false,
+    this.echoLinkProxyAuto = true,
+    this.echoLinkProxyHost = '',
+    this.echoLinkProxyPort = 8100,
+    this.echoLinkProxyPassword = 'PUBLIC',
     this.webServerEnabled = false,
     this.webServerPort = 8080,
     this.agwpeServerEnabled = false,
@@ -234,6 +248,11 @@ class AppSettings {
     bool? winlinkUseStationId,
     String? echoLinkPassword,
     String? echoLinkLocation,
+    bool? echoLinkProxyEnabled,
+    bool? echoLinkProxyAuto,
+    String? echoLinkProxyHost,
+    int? echoLinkProxyPort,
+    String? echoLinkProxyPassword,
     bool? webServerEnabled,
     int? webServerPort,
     bool? agwpeServerEnabled,
@@ -281,6 +300,12 @@ class AppSettings {
       winlinkUseStationId: winlinkUseStationId ?? this.winlinkUseStationId,
       echoLinkPassword: echoLinkPassword ?? this.echoLinkPassword,
       echoLinkLocation: echoLinkLocation ?? this.echoLinkLocation,
+      echoLinkProxyEnabled: echoLinkProxyEnabled ?? this.echoLinkProxyEnabled,
+      echoLinkProxyAuto: echoLinkProxyAuto ?? this.echoLinkProxyAuto,
+      echoLinkProxyHost: echoLinkProxyHost ?? this.echoLinkProxyHost,
+      echoLinkProxyPort: echoLinkProxyPort ?? this.echoLinkProxyPort,
+      echoLinkProxyPassword:
+          echoLinkProxyPassword ?? this.echoLinkProxyPassword,
       webServerEnabled: webServerEnabled ?? this.webServerEnabled,
       webServerPort: webServerPort ?? this.webServerPort,
       agwpeServerEnabled: agwpeServerEnabled ?? this.agwpeServerEnabled,
@@ -364,6 +389,17 @@ class AppSettings {
           DataBroker.getValue<String>(0, 'EchoLinkPassword', '') ?? '',
       echoLinkLocation:
           DataBroker.getValue<String>(0, 'EchoLinkLocation', '') ?? '',
+      echoLinkProxyEnabled:
+          (DataBroker.getValue<int>(0, 'EchoLinkProxyEnabled', 0) ?? 0) == 1,
+      echoLinkProxyAuto:
+          (DataBroker.getValue<int>(0, 'EchoLinkProxyAuto', 1) ?? 1) == 1,
+      echoLinkProxyHost:
+          DataBroker.getValue<String>(0, 'EchoLinkProxyHost', '') ?? '',
+      echoLinkProxyPort:
+          DataBroker.getValue<int>(0, 'EchoLinkProxyPort', 8100) ?? 8100,
+      echoLinkProxyPassword:
+          DataBroker.getValue<String>(0, 'EchoLinkProxyPassword', 'PUBLIC') ??
+              'PUBLIC',
       webServerEnabled:
           (DataBroker.getValue<int>(0, 'webServerEnabled', 0) ?? 0) == 1,
       webServerPort: DataBroker.getValue<int>(0, 'webServerPort', 8080) ?? 8080,
@@ -492,6 +528,31 @@ class AppSettings {
       deviceId: 0,
       name: 'EchoLinkLocation',
       data: echoLinkLocation,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'EchoLinkProxyEnabled',
+      data: echoLinkProxyEnabled ? 1 : 0,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'EchoLinkProxyAuto',
+      data: echoLinkProxyAuto ? 1 : 0,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'EchoLinkProxyHost',
+      data: echoLinkProxyHost,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'EchoLinkProxyPort',
+      data: echoLinkProxyPort,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'EchoLinkProxyPassword',
+      data: echoLinkProxyPassword,
     );
     DataBroker.dispatch(
       deviceId: 0,

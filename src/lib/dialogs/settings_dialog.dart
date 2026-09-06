@@ -70,6 +70,9 @@ class _SettingsDialogState extends State<SettingsDialog>
   late TextEditingController _winlinkPasswordController;
   late TextEditingController _echoLinkPasswordController;
   late TextEditingController _echoLinkLocationController;
+  late TextEditingController _echoLinkProxyHostController;
+  late TextEditingController _echoLinkProxyPortController;
+  late TextEditingController _echoLinkProxyPasswordController;
   late TextEditingController _allStarPasswordController;
   late TextEditingController _allStarNodeNumberController;
   late TextEditingController _allStarNodePasswordController;
@@ -250,11 +253,20 @@ class _SettingsDialogState extends State<SettingsDialog>
     _winlinkPasswordController = TextEditingController(
       text: _settings.winlinkPassword,
     );
-    _echoLinkPasswordController = TextEditingController(
-      text: _settings.echoLinkPassword,
-    );
+    // Start blank so the stored EchoLink password is never shown; an empty
+    // field on save keeps the existing password (see _onSave).
+    _echoLinkPasswordController = TextEditingController();
     _echoLinkLocationController = TextEditingController(
       text: _settings.echoLinkLocation,
+    );
+    _echoLinkProxyHostController = TextEditingController(
+      text: _settings.echoLinkProxyHost,
+    );
+    _echoLinkProxyPortController = TextEditingController(
+      text: _settings.echoLinkProxyPort.toString(),
+    );
+    _echoLinkProxyPasswordController = TextEditingController(
+      text: _settings.echoLinkProxyPassword,
     );
     _allStarPasswordController = TextEditingController(
       text: _broker.getValue<String>(0, allStarPasswordKey, '') ?? '',
@@ -369,6 +381,9 @@ class _SettingsDialogState extends State<SettingsDialog>
     _winlinkPasswordController.dispose();
     _echoLinkPasswordController.dispose();
     _echoLinkLocationController.dispose();
+    _echoLinkProxyHostController.dispose();
+    _echoLinkProxyPortController.dispose();
+    _echoLinkProxyPasswordController.dispose();
     _allStarPasswordController.dispose();
     _allStarNodeNumberController.dispose();
     _allStarNodePasswordController.dispose();
@@ -810,8 +825,19 @@ class _SettingsDialogState extends State<SettingsDialog>
     final l10n = AppLocalizations.of(context);
     // Update settings from text controllers
     _settings.winlinkPassword = _winlinkPasswordController.text;
-    _settings.echoLinkPassword = _echoLinkPasswordController.text;
+    // Blank means "keep the current password" so the pre-blanked field never
+    // erases a stored password when the user saves without retyping it.
+    if (_echoLinkPasswordController.text.isNotEmpty) {
+      _settings.echoLinkPassword = _echoLinkPasswordController.text;
+    }
     _settings.echoLinkLocation = _echoLinkLocationController.text;
+    _settings.echoLinkProxyHost = _echoLinkProxyHostController.text.trim();
+    _settings.echoLinkProxyPort =
+        int.tryParse(_echoLinkProxyPortController.text.trim()) ?? 8100;
+    _settings.echoLinkProxyPassword =
+        _echoLinkProxyPasswordController.text.trim().isEmpty
+            ? 'PUBLIC'
+            : _echoLinkProxyPasswordController.text.trim();
     _settings.aprsIsServer = _aprsIsServerController.text.trim();
     _settings.aprsIsPort = int.tryParse(_aprsIsPortController.text) ?? 14580;
     _settings.aprsFiApiKey = _aprsFiApiKeyController.text.trim();
@@ -2868,6 +2894,13 @@ class _SettingsDialogState extends State<SettingsDialog>
                     ),
                   ),
                 ],
+                if (hasCallSign && _settings.echoLinkPassword.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    l10n.settingsEchoLinkPasswordKeepBlank,
+                    style: _secondaryStyle(),
+                  ),
+                ],
                 const SizedBox(height: 16),
                 Text(
                   l10n.settingsEchoLinkLocation,
@@ -2887,6 +2920,146 @@ class _SettingsDialogState extends State<SettingsDialog>
               ],
             ),
           ),
+          if (hasCallSign) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: _sectionDecoration(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.settingsEchoLinkProxyTitle,
+                    style: _sectionTitleStyle(),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.settingsEchoLinkProxyHelp,
+                    style: _secondaryStyle(),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _settings.echoLinkProxyEnabled,
+                        onChanged: (value) {
+                          setState(
+                            () => _settings.echoLinkProxyEnabled =
+                                value ?? false,
+                          );
+                        },
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(
+                            () => _settings.echoLinkProxyEnabled =
+                                !_settings.echoLinkProxyEnabled,
+                          ),
+                          child: Text(l10n.settingsEchoLinkProxyEnable),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _settings.echoLinkProxyAuto,
+                        onChanged: _settings.echoLinkProxyEnabled
+                            ? (value) {
+                                setState(
+                                  () => _settings.echoLinkProxyAuto =
+                                      value ?? true,
+                                );
+                              }
+                            : null,
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _settings.echoLinkProxyEnabled
+                              ? () => setState(
+                                    () => _settings.echoLinkProxyAuto =
+                                        !_settings.echoLinkProxyAuto,
+                                  )
+                              : null,
+                          child: Text(l10n.settingsEchoLinkProxyAuto),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 48, bottom: 8),
+                    child: Text(
+                      l10n.settingsEchoLinkProxyAutoHelp,
+                      style: _secondaryStyle(),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.settingsEchoLinkProxyHost,
+                              style: DialogStyles.labelStyle,
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: _echoLinkProxyHostController,
+                              enabled: _settings.echoLinkProxyEnabled &&
+                                  !_settings.echoLinkProxyAuto,
+                              decoration: _inputDecoration(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.settingsEchoLinkProxyPort,
+                              style: DialogStyles.labelStyle,
+                            ),
+                            const SizedBox(height: 4),
+                            TextField(
+                              controller: _echoLinkProxyPortController,
+                              enabled: _settings.echoLinkProxyEnabled &&
+                                  !_settings.echoLinkProxyAuto,
+                              keyboardType: TextInputType.number,
+                              decoration: _inputDecoration(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l10n.settingsEchoLinkProxyPassword,
+                    style: DialogStyles.labelStyle,
+                  ),
+                  const SizedBox(height: 4),
+                  TextField(
+                    controller: _echoLinkProxyPasswordController,
+                    enabled: _settings.echoLinkProxyEnabled &&
+                        !_settings.echoLinkProxyAuto,
+                    decoration: _inputDecoration(),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.settingsEchoLinkProxyPasswordHelp,
+                    style: _secondaryStyle(),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (hasCallSign) ...[
             const SizedBox(height: 16),
             Container(

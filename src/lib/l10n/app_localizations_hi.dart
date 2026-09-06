@@ -911,11 +911,47 @@ class AppLocalizationsHi extends AppLocalizations {
       'लाइसेंस टैब से आपके कॉल साइन पर आधारित';
 
   @override
+  String get settingsEchoLinkPasswordKeepBlank =>
+      'अपना वर्तमान पासवर्ड बनाए रखने के लिए खाली छोड़ें।';
+
+  @override
   String get settingsEchoLinkLocation => 'स्थान';
 
   @override
   String get settingsEchoLinkLocationHelp =>
       'डायरेक्टरी में अन्य स्टेशनों को दिखाया जाता है, जैसे आपका शहर और राज्य।';
+
+  @override
+  String get settingsEchoLinkProxyTitle => 'नेटवर्क कनेक्शन';
+
+  @override
+  String get settingsEchoLinkProxyHelp =>
+      'उन नेटवर्क से कनेक्ट करने के लिए EchoLink प्रॉक्सी का उपयोग करें जो सीधे EchoLink ट्रैफ़िक को अवरुद्ध करते हैं, जैसे कैरियर-ग्रेड NAT (CGNAT) के पीछे मोबाइल डेटा।';
+
+  @override
+  String get settingsEchoLinkProxyEnable =>
+      'EchoLink प्रॉक्सी के माध्यम से कनेक्ट करें';
+
+  @override
+  String get settingsEchoLinkProxyAuto =>
+      'स्वचालित रूप से एक सार्वजनिक प्रॉक्सी चुनें';
+
+  @override
+  String get settingsEchoLinkProxyAutoHelp =>
+      'आपके लिए एक उपलब्ध सार्वजनिक प्रॉक्सी चुनता है और यदि कोई व्यस्त हो तो दूसरे से पुनः कनेक्ट करता है। नीचे कोई विशिष्ट प्रॉक्सी दर्ज करने के लिए इसे बंद करें।';
+
+  @override
+  String get settingsEchoLinkProxyHost => 'प्रॉक्सी होस्ट';
+
+  @override
+  String get settingsEchoLinkProxyPort => 'पोर्ट';
+
+  @override
+  String get settingsEchoLinkProxyPassword => 'प्रॉक्सी पासवर्ड';
+
+  @override
+  String get settingsEchoLinkProxyPasswordHelp =>
+      'सार्वजनिक प्रॉक्सी का उपयोग करने के लिए PUBLIC दर्ज करें। उपलब्ध सार्वजनिक प्रॉक्सी के लिए www.echolink.org/proxylist.jsp देखें।';
 
   @override
   String get settingsEchoLinkNoCallSign =>
