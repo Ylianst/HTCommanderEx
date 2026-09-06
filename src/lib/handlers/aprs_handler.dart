@@ -576,8 +576,11 @@ class AprsHandler {
             addressee.toLowerCase() == callsignOnly.toLowerCase());
     if (!isForUs) return;
 
-    if (ax25Packet.addresses.length < 2) return;
-    final senderCallsign = ax25Packet.addresses[1].callSignWithId;
+    // Address the ACK to the station that actually sent the message. For an
+    // IGate-relayed (third-party) message this is the original internet sender,
+    // not the IGate; sending it over RF lets an IGate gate the ACK back to them.
+    final senderCallsign = aprsPacket.sourceCallsignWithId;
+    if (senderCallsign.isEmpty) return;
 
     final aprsChannelId = _getAprsChannelId(radioDeviceId);
     if (aprsChannelId < 0) return;
