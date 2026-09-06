@@ -762,6 +762,12 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il percorso integrato non può essere rimosso';
 
   @override
+  String get settingsMoveRouteUp => 'Sposta su';
+
+  @override
+  String get settingsMoveRouteDown => 'Sposta giù';
+
+  @override
   String get settingsCommsIntro =>
       'Configura le impostazioni di riconoscimento vocale e sintesi vocale.';
 

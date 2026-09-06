@@ -768,6 +768,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die integrierte Route kann nicht gelöscht werden';
 
   @override
+  String get settingsMoveRouteUp => 'Nach oben';
+
+  @override
+  String get settingsMoveRouteDown => 'Nach unten';
+
+  @override
   String get settingsCommsIntro =>
       'Konfigurieren Sie die Einstellungen für Spracherkennung und Sprachsynthese.';
 

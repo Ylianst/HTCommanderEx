@@ -762,6 +762,12 @@ class AppLocalizationsEs extends AppLocalizations {
       'La ruta integrada no se puede eliminar';
 
   @override
+  String get settingsMoveRouteUp => 'Mover arriba';
+
+  @override
+  String get settingsMoveRouteDown => 'Mover abajo';
+
+  @override
   String get settingsCommsIntro =>
       'Configure los ajustes de reconocimiento y síntesis de voz.';
 

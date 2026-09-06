@@ -492,9 +492,7 @@ class AprsHandler {
         messageData.msgType != MessageType.mtAck &&
         messageData.msgType != MessageType.mtRej &&
         messageData.msgText.isNotEmpty) {
-      final source = ax25Packet.addresses.length >= 2
-          ? ax25Packet.addresses[1].callSignWithId
-          : '';
+      final source = aprsPacket.sourceCallsignWithId;
       _broker.dispatch(
         deviceId: deviceId,
         name: 'AprsMessageReceived',
@@ -513,7 +511,7 @@ class AprsHandler {
     }
 
     _sendAckIfNeeded(aprsPacket, ax25Packet, frame, deviceId);
-    _notifyIncomingAprsMessage(aprsPacket, ax25Packet);
+    _notifyIncomingAprsMessage(aprsPacket);
   }
 
   /// Raises a system notification when an APRS message addressed to our station
@@ -521,7 +519,6 @@ class AprsHandler {
   /// is in the foreground.
   void _notifyIncomingAprsMessage(
     AprsPacket aprsPacket,
-    AX25Packet ax25Packet,
   ) {
     // The desktop host raises the notification; on the hosted web build it would
     // be a duplicate of the host's own pop-up.
@@ -544,9 +541,7 @@ class AprsHandler {
             addressee.toLowerCase() == callsignOnly.toLowerCase());
     if (!isForUs) return;
 
-    final from = ax25Packet.addresses.length >= 2
-        ? ax25Packet.addresses[1].callSignWithId
-        : '';
+    final from = aprsPacket.sourceCallsignWithId;
     NotificationService.instance.showMessage(
       title: from.isNotEmpty ? 'APRS message from $from' : 'APRS message',
       body: messageData.msgText,

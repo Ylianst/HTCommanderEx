@@ -263,6 +263,8 @@
   "settingsEditRouteProtected": "組み込みルートは編集できません",
   "settingsDeleteRoute": "ルートを削除",
   "settingsDeleteRouteProtected": "組み込みルートは削除できません",
+  "settingsMoveRouteUp": "上へ移動",
+  "settingsMoveRouteDown": "下へ移動",
 
   "settingsCommsIntro": "音声認識と音声合成の設定を行います。",
   "settingsSpeechToText": "音声認識",

@@ -764,6 +764,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'La route intégrée ne peut pas être supprimée';
 
   @override
+  String get settingsMoveRouteUp => 'Déplacer vers le haut';
+
+  @override
+  String get settingsMoveRouteDown => 'Déplacer vers le bas';
+
+  @override
   String get settingsCommsIntro =>
       'Configurez les paramètres de reconnaissance et de synthèse vocale.';
 

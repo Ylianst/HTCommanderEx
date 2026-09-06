@@ -263,6 +263,8 @@
   "settingsEditRouteProtected": "अंतर्निहित रूट संपादित नहीं किया जा सकता",
   "settingsDeleteRoute": "रूट हटाएँ",
   "settingsDeleteRouteProtected": "अंतर्निहित रूट हटाया नहीं जा सकता",
+  "settingsMoveRouteUp": "ऊपर ले जाएँ",
+  "settingsMoveRouteDown": "नीचे ले जाएँ",
 
   "settingsCommsIntro": "वाक् पहचान और वाक् संश्लेषण सेटिंग्स कॉन्फ़िगर करें।",
   "settingsSpeechToText": "वाक् पहचान",

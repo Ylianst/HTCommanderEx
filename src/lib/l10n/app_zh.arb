@@ -263,6 +263,8 @@
   "settingsEditRouteProtected": "内置路由无法编辑",
   "settingsDeleteRoute": "删除路由",
   "settingsDeleteRouteProtected": "内置路由无法删除",
+  "settingsMoveRouteUp": "上移",
+  "settingsMoveRouteDown": "下移",
 
   "settingsCommsIntro": "配置语音识别和语音合成设置。",
   "settingsSpeechToText": "语音识别",

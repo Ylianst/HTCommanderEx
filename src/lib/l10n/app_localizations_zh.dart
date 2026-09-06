@@ -742,6 +742,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsDeleteRouteProtected => '内置路由无法删除';
 
   @override
+  String get settingsMoveRouteUp => '上移';
+
+  @override
+  String get settingsMoveRouteDown => '下移';
+
+  @override
   String get settingsCommsIntro => '配置语音识别和语音合成设置。';
 
   @override

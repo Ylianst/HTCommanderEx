@@ -162,6 +162,28 @@ void main() {
     });
   });
 
+  group('AprsPacket third-party header', () {
+    test('reports the original sender, not the relaying IGate', () {
+      // An IGate (IGATE-1) gates an internet message onto RF wrapped in a
+      // third-party header. The AX.25 source is the IGate; the real sender
+      // (KC1MUR-5) lives inside the "}" header.
+      final aprs = _parseTnc2(
+        'IGATE-1>APRS,WIDE1-1:}KC1MUR-5>APRS,TCPIP*::KK7VZT-7 :hello{1',
+      );
+      expect(aprs.packet!.addresses[1].toString(), 'IGATE-1');
+      expect(aprs.thirdPartySourceCallsign?.stationCallsign, 'KC1MUR-5');
+      expect(aprs.sourceCallsignWithId, 'KC1MUR-5');
+      expect(aprs.messageData.addressee, 'KK7VZT-7');
+      expect(aprs.messageData.msgText, 'hello');
+    });
+
+    test('falls back to the AX.25 source for non-relayed traffic', () {
+      final aprs = _parseTnc2('KC1MUR-5>APRS,WIDE1-1::KK7VZT-7 :hi{2');
+      expect(aprs.thirdPartySourceCallsign, isNull);
+      expect(aprs.sourceCallsignWithId, 'KC1MUR-5');
+    });
+  });
+
   group('AprsIsClient login', () {
     test('builds a login line with filter', () {
       final client = AprsIsClient(

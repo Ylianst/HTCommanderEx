@@ -750,6 +750,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsDeleteRouteProtected => '組み込みルートは削除できません';
 
   @override
+  String get settingsMoveRouteUp => '上へ移動';
+
+  @override
+  String get settingsMoveRouteDown => '下へ移動';
+
+  @override
   String get settingsCommsIntro => '音声認識と音声合成の設定を行います。';
 
   @override

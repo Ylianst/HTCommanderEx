@@ -26,6 +26,13 @@ class AprsPacket {
   String informationField = '';
   String comment = '';
   String? thirdPartyHeader;
+
+  /// When this packet arrived wrapped in a third-party header (for example an
+  /// APRS message gated from the internet onto RF by an IGate), this holds the
+  /// original sender parsed from that header. The AX.25 frame source in that
+  /// case is the IGate, not the station that actually sent the message.
+  Callsign? thirdPartySourceCallsign;
+
   int symbolTableIdentifier = 0; // code unit (0 = none)
   int symbolCode = 0; // code unit (0 = none)
   bool fromD7 = false;
@@ -54,6 +61,18 @@ class AprsPacket {
       : String.fromCharCode(symbolTableIdentifier);
 
   String get symbol => symbolCode == 0 ? '' : String.fromCharCode(symbolCode);
+
+  /// The station that actually originated this packet, with SSID. For traffic
+  /// relayed inside a third-party header (e.g. gated from the internet to RF by
+  /// an IGate) this is the original sender rather than the AX.25 frame source,
+  /// which would be the IGate. Falls back to the AX.25 source address.
+  String get sourceCallsignWithId {
+    final tp = thirdPartySourceCallsign?.stationCallsign;
+    if (tp != null && tp.isNotEmpty) return tp;
+    final addrs = packet?.addresses;
+    if (addrs == null || addrs.isEmpty) return '';
+    return (addrs.length > 1 ? addrs[1] : addrs[0]).callSignWithId;
+  }
 
   /// Serializes for cross-window transport by encoding the underlying AX.25
   /// frame. Consumers rebuild the fully parsed packet with [fromJson].
@@ -100,6 +119,14 @@ class AprsPacket {
         if (i < 1) return null;
         r.thirdPartyHeader = dataStr.substring(1, i);
         dataStr = dataStr.substring(i + 2);
+        // The header carries the original "SRC>DEST,PATH" routing; keep the
+        // real source so it is not mistaken for the IGate that relayed it.
+        final gt = r.thirdPartyHeader!.indexOf('>');
+        if (gt > 0) {
+          r.thirdPartySourceCallsign = Callsign.parseCallsign(
+            r.thirdPartyHeader!.substring(0, gt),
+          );
+        }
       }
       if (dataStr.isEmpty) return null;
 

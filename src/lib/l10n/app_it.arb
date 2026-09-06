@@ -254,6 +254,8 @@
   "settingsEditRouteProtected": "Il percorso integrato non può essere modificato",
   "settingsDeleteRoute": "Elimina percorso",
   "settingsDeleteRouteProtected": "Il percorso integrato non può essere rimosso",
+  "settingsMoveRouteUp": "Sposta su",
+  "settingsMoveRouteDown": "Sposta giù",
 
   "settingsCommsIntro": "Configura le impostazioni di riconoscimento vocale e sintesi vocale.",
   "settingsSpeechToText": "Da voce a testo",

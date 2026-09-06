@@ -764,6 +764,12 @@ class AppLocalizationsPl extends AppLocalizations {
       'Wbudowanej trasy nie można usunąć';
 
   @override
+  String get settingsMoveRouteUp => 'Przenieś w górę';
+
+  @override
+  String get settingsMoveRouteDown => 'Przenieś w dół';
+
+  @override
   String get settingsCommsIntro =>
       'Skonfiguruj ustawienia rozpoznawania i syntezy mowy.';
 

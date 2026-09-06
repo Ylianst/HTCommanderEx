@@ -94,37 +94,67 @@ class AppSettings {
   int maxSstvImages;
   int maxCommEvents;
 
-  /// APRS routes that always exist and cannot be edited or removed. Stored in
-  /// definition order (preserved by the map) so they always appear first.
+  /// APRS routes that always exist and cannot be edited or removed, but may be
+  /// reordered by the user. New installs receive them in definition order.
   static const Map<String, String> protectedRoutes = {
     'Standard': 'APN000,WIDE1-1,WIDE2-2',
     'None': 'APN000',
   };
 
+  /// Optional built-in route seeded once at first startup. Unlike the protected
+  /// routes it can be edited or deleted, and it is not re-added once removed.
+  static const String _issRouteName = 'ISS';
+  static const String _issRoutePath = 'ARISS,WIDE2-1';
+
   /// Whether a route with the given name is a built-in protected route.
   static bool isProtectedRouteName(String name) =>
       protectedRoutes.containsKey(name);
 
-  /// Returns a list that always begins with the protected routes (with their
-  /// canonical paths), followed by the user-defined routes. Any user routes
-  /// whose names collide with a protected route are dropped in favour of the
-  /// built-in definition.
+  /// Returns a list containing every protected route exactly once (forced to
+  /// its canonical path since built-ins can't be edited) while preserving the
+  /// order of [routes]. Any protected routes missing from [routes] are appended
+  /// in definition order so the built-ins always exist.
   static List<AprsRoute> _withProtectedRoutes(List<AprsRoute> routes) {
     final result = <AprsRoute>[];
-    protectedRoutes.forEach((name, path) {
-      result.add(AprsRoute(name: name, path: path));
-    });
+    final seen = <String>{};
     for (final r in routes) {
-      if (!protectedRoutes.containsKey(r.name)) result.add(r);
+      final protectedPath = protectedRoutes[r.name];
+      if (protectedPath != null) {
+        if (seen.add(r.name)) {
+          result.add(AprsRoute(name: r.name, path: protectedPath));
+        }
+      } else {
+        result.add(r);
+      }
     }
+    protectedRoutes.forEach((name, path) {
+      if (seen.add(name)) result.add(AprsRoute(name: name, path: path));
+    });
     return result;
   }
 
   /// Ensure the protected APRS routes exist in the DataBroker at application
-  /// startup, persisting them if they are missing or have changed.
+  /// startup, persisting them if they are missing or have changed. The optional
+  /// "ISS" route is seeded only once so users can delete it permanently.
   static void ensureDefaultRoutes() {
     final routesStr = DataBroker.getValue<String>(0, 'AprsRoutes', '') ?? '';
     final routes = _withProtectedRoutes(_parseAprsRoutes(routesStr));
+
+    final issSeeded =
+        (DataBroker.getValue<int>(0, 'AprsIssSeeded', 0) ?? 0) == 1;
+    if (!issSeeded) {
+      if (!routes.any((r) => r.name == _issRouteName)) {
+        final route = AprsRoute(name: _issRouteName, path: _issRoutePath);
+        final afterStandard = routes.indexWhere((r) => r.name == 'Standard');
+        if (afterStandard >= 0) {
+          routes.insert(afterStandard + 1, route);
+        } else {
+          routes.add(route);
+        }
+      }
+      DataBroker.dispatch(deviceId: 0, name: 'AprsIssSeeded', data: 1);
+    }
+
     final serialized = routes.map((r) => '${r.name}|${r.path}').join('|');
     if (serialized != routesStr) {
       DataBroker.dispatch(deviceId: 0, name: 'AprsRoutes', data: serialized);

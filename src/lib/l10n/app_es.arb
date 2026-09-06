@@ -263,6 +263,8 @@
   "settingsEditRouteProtected": "La ruta integrada no se puede editar",
   "settingsDeleteRoute": "Eliminar ruta",
   "settingsDeleteRouteProtected": "La ruta integrada no se puede eliminar",
+  "settingsMoveRouteUp": "Mover arriba",
+  "settingsMoveRouteDown": "Mover abajo",
 
   "settingsCommsIntro": "Configure los ajustes de reconocimiento y síntesis de voz.",
   "settingsSpeechToText": "Reconocimiento de voz",

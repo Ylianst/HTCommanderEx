@@ -263,6 +263,8 @@
   "settingsEditRouteProtected": "Wbudowanej trasy nie można edytować",
   "settingsDeleteRoute": "Usuń trasę",
   "settingsDeleteRouteProtected": "Wbudowanej trasy nie można usunąć",
+  "settingsMoveRouteUp": "Przenieś w górę",
+  "settingsMoveRouteDown": "Przenieś w dół",
 
   "settingsCommsIntro": "Skonfiguruj ustawienia rozpoznawania i syntezy mowy.",
   "settingsSpeechToText": "Rozpoznawanie mowy",

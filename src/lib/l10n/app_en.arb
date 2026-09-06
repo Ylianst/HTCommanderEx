@@ -629,6 +629,8 @@
   "settingsEditRouteProtected": "Built-in route cannot be edited",
   "settingsDeleteRoute": "Delete route",
   "settingsDeleteRouteProtected": "Built-in route cannot be removed",
+  "settingsMoveRouteUp": "Move up",
+  "settingsMoveRouteDown": "Move down",
 
   "settingsCommsIntro": "Configure speech recognition and text-to-speech settings.",
   "settingsSpeechToText": "Speech-to-Text",

@@ -757,6 +757,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsDeleteRouteProtected => 'Built-in route cannot be removed';
 
   @override
+  String get settingsMoveRouteUp => 'Move up';
+
+  @override
+  String get settingsMoveRouteDown => 'Move down';
+
+  @override
   String get settingsCommsIntro =>
       'Configure speech recognition and text-to-speech settings.';
 

@@ -762,6 +762,12 @@ class AppLocalizationsHi extends AppLocalizations {
       'अंतर्निहित रूट हटाया नहीं जा सकता';
 
   @override
+  String get settingsMoveRouteUp => 'ऊपर ले जाएँ';
+
+  @override
+  String get settingsMoveRouteDown => 'नीचे ले जाएँ';
+
+  @override
   String get settingsCommsIntro =>
       'वाक् पहचान और वाक् संश्लेषण सेटिंग्स कॉन्फ़िगर करें।';
 

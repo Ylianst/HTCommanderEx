@@ -1627,36 +1627,44 @@ class _SettingsDialogState extends State<SettingsDialog>
                           route.name,
                         );
                         final canDelete = !isProtected;
-                        return ListTile(
-                          dense: true,
-                          title: Text(route.name),
-                          subtitle: Text(route.path),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, size: 20),
-                                tooltip: isProtected
-                                    ? l10n.settingsEditRouteProtected
-                                    : l10n.settingsEditRoute,
-                                onPressed: isProtected
-                                    ? null
-                                    : () => _editAprsRoute(index),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.delete,
-                                  size: 20,
-                                  color: canDelete ? Colors.red.shade400 : null,
+                        return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onSecondaryTapDown: (details) =>
+                              _showRouteContextMenu(details.globalPosition, index),
+                          onLongPressStart: (details) =>
+                              _showRouteContextMenu(details.globalPosition, index),
+                          child: ListTile(
+                            dense: true,
+                            title: Text(route.name),
+                            subtitle: Text(route.path),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, size: 20),
+                                  tooltip: isProtected
+                                      ? l10n.settingsEditRouteProtected
+                                      : l10n.settingsEditRoute,
+                                  onPressed: isProtected
+                                      ? null
+                                      : () => _editAprsRoute(index),
                                 ),
-                                tooltip: canDelete
-                                    ? l10n.settingsDeleteRoute
-                                    : l10n.settingsDeleteRouteProtected,
-                                onPressed: canDelete
-                                    ? () => _deleteAprsRoute(index)
-                                    : null,
-                              ),
-                            ],
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.delete,
+                                    size: 20,
+                                    color:
+                                        canDelete ? Colors.red.shade400 : null,
+                                  ),
+                                  tooltip: canDelete
+                                      ? l10n.settingsDeleteRoute
+                                      : l10n.settingsDeleteRouteProtected,
+                                  onPressed: canDelete
+                                      ? () => _deleteAprsRoute(index)
+                                      : null,
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -2185,6 +2193,61 @@ class _SettingsDialogState extends State<SettingsDialog>
 
   void _deleteAprsRoute(int index) {
     setState(() => _settings.aprsRoutes.removeAt(index));
+  }
+
+  /// True when the route at [index] can swap with the one above it.
+  bool _canMoveRouteUp(int index) => index > 0;
+
+  /// True when the route at [index] can swap with the one below it.
+  bool _canMoveRouteDown(int index) =>
+      index < _settings.aprsRoutes.length - 1;
+
+  void _moveAprsRoute(int index, int delta) {
+    setState(() {
+      final routes = _settings.aprsRoutes;
+      final route = routes.removeAt(index);
+      routes.insert(index + delta, route);
+    });
+  }
+
+  /// Right-click / long-press menu offering "Move up" and "Move down" for the
+  /// route at [index]; entries are disabled when the move is not possible.
+  Future<void> _showRouteContextMenu(Offset position, int index) async {
+    final l10n = AppLocalizations.of(context);
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final selected = await showMenu<int>(
+      context: context,
+      position: RelativeRect.fromRect(
+        position & const Size(40, 40),
+        Offset.zero & overlay.size,
+      ),
+      items: [
+        PopupMenuItem<int>(
+          value: -1,
+          enabled: _canMoveRouteUp(index),
+          child: Row(
+            children: [
+              const Icon(Icons.arrow_upward, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.settingsMoveRouteUp),
+            ],
+          ),
+        ),
+        PopupMenuItem<int>(
+          value: 1,
+          enabled: _canMoveRouteDown(index),
+          child: Row(
+            children: [
+              const Icon(Icons.arrow_downward, size: 18),
+              const SizedBox(width: 8),
+              Text(l10n.settingsMoveRouteDown),
+            ],
+          ),
+        ),
+      ],
+    );
+    if (selected != null) _moveAprsRoute(index, selected);
   }
 
   /// Human-readable size, e.g. "923 MB" or "1.2 GB".

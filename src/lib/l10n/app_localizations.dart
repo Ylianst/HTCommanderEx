@@ -1492,6 +1492,18 @@ abstract class AppLocalizations {
   /// **'Built-in route cannot be removed'**
   String get settingsDeleteRouteProtected;
 
+  /// No description provided for @settingsMoveRouteUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get settingsMoveRouteUp;
+
+  /// No description provided for @settingsMoveRouteDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get settingsMoveRouteDown;
+
   /// No description provided for @settingsCommsIntro.
   ///
   /// In en, this message translates to:

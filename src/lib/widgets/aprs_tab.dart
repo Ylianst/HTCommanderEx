@@ -943,6 +943,15 @@ class _AprsTabState extends State<AprsTab> with AutomaticKeepAliveClientMixin, T
     String routingString = senderAddr.toString();
     String senderCallsign = senderAddr.callSignWithId;
 
+    // Traffic relayed inside a third-party header (e.g. an IGate gating an
+    // internet message onto RF) carries the IGate as the AX.25 source. Use the
+    // original sender parsed from that header so the "from" field is correct.
+    final thirdPartySource = aprsPacket.thirdPartySourceCallsign?.stationCallsign;
+    if (thirdPartySource != null && thirdPartySource.isNotEmpty) {
+      senderCallsign = thirdPartySource;
+      routingString = thirdPartySource;
+    }
+
     final pos = aprsPacket.position;
     if (pos.coordinateSet.latitude.value != 0 &&
         pos.coordinateSet.longitude.value != 0) {
