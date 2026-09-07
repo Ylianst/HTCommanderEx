@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'data_broker_client.dart';
 import 'host_bridge.dart';
+import 'secret_store.dart';
 
 /// Callback type for data broker subscriptions.
 /// Parameters: deviceId, name, data
@@ -58,6 +59,13 @@ class DataBroker {
 
   /// Subscribe to all names.
   static const String allNames = '*';
+
+  /// Device-0 keys whose values are per-user secrets. These are persisted in
+  /// the OS-native encrypted [SecretStore] instead of plaintext
+  /// SharedPreferences, mirroring the C# `ISecretStore` approach. Loaded into
+  /// memory at startup by [loadSecrets] (which also migrates any legacy
+  /// plaintext copy written before encryption existed).
+  static const Set<String> _secretKeys = {'RepeaterBookToken'};
 
   /// Singleton instance
   static final DataBroker _instance = DataBroker._internal();
@@ -187,6 +195,38 @@ class DataBroker {
       await _recoverCorruptPreferences();
     }
     _instance._initialized = true;
+  }
+
+  /// Loads encrypted secrets from the OS-native [SecretStore] into the in-memory
+  /// store, and migrates any legacy plaintext copy (written before encryption
+  /// existed) into the secret store. Call once right after [initialize] and
+  /// before settings are first read. No-op on platforms without a secret store.
+  static Future<void> loadSecrets() async {
+    if (!SecretStore.isSupported) return;
+    final broker = _instance;
+    for (final name in _secretKeys) {
+      try {
+        String? value = await SecretStore.instance.read(name);
+        final legacyKey = 'databroker_$name';
+        final legacy = broker._prefs?.getString(legacyKey);
+        if ((value == null || value.isEmpty) &&
+            legacy != null &&
+            legacy.isNotEmpty) {
+          // Migrate a plaintext value into the encrypted store, then drop it.
+          value = legacy;
+          await SecretStore.instance.write(name, legacy);
+          await broker._prefs?.remove(legacyKey);
+        } else if (value != null && value.isNotEmpty && legacy != null) {
+          // A stale plaintext copy alongside the secret: remove it.
+          await broker._prefs?.remove(legacyKey);
+        }
+        if (value != null && value.isNotEmpty) {
+          broker._dataStore[_DataKey(0, name)] = value;
+        }
+      } catch (e) {
+        debugPrint('DataBroker: loadSecrets($name) failed: $e');
+      }
+    }
   }
 
   /// Recovers from a corrupt preferences store: quarantine the bad main file,
@@ -364,13 +404,16 @@ class DataBroker {
       // standalone window) owns persistence; clients rely on the host, and a
       // hosted web client proxies device 0 to the desktop host.
       if (deviceId == 0 &&
-          _prefs != null &&
           _role != DataBrokerRole.client &&
           (!_device0RemoteMode || HostBridge.isLocalOnlySetting(name))) {
-        _persistValue(name, data);
-        // Keep a rolling on-disk backup (throttled to once an hour) so a
-        // corrupt store can be recovered on next launch. Fire-and-forget.
-        unawaited(_maybeBackupPreferences());
+        if (_secretKeys.contains(name) && SecretStore.isSupported) {
+          _persistSecret(name, data);
+        } else if (_prefs != null) {
+          _persistValue(name, data);
+          // Keep a rolling on-disk backup (throttled to once an hour) so a
+          // corrupt store can be recovered on next launch. Fire-and-forget.
+          unawaited(_maybeBackupPreferences());
+        }
       }
     }
 
@@ -394,6 +437,14 @@ class DataBroker {
         debugPrint('DataBroker: Callback error for ($deviceId, $name): $e');
       }
     }
+  }
+
+  /// Persists a secret to the OS-native encrypted [SecretStore] and removes any
+  /// legacy plaintext copy so the value only ever lives encrypted at rest.
+  void _persistSecret(String name, Object? data) {
+    final value = data is String ? data : (data?.toString() ?? '');
+    unawaited(SecretStore.instance.write(name, value));
+    _prefs?.remove('databroker_$name');
   }
 
   /// Persists a value to SharedPreferences.

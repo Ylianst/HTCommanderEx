@@ -18,6 +18,7 @@ import '../allstar/allstar_portal_service.dart';
 import '../allstar/iax2_constants.dart' show iax2DefaultPort;
 import '../aprsis/aprsfi_client.dart';
 import '../echolink/echolink_credential_test.dart';
+import '../radio/repeaterbook_client.dart';
 import '../services/serial/serial_port.dart';
 import '../services/data_broker_client.dart';
 import '../services/history_limiter.dart';
@@ -83,6 +84,7 @@ class _SettingsDialogState extends State<SettingsDialog>
   late TextEditingController _aprsIsPortController;
   late TextEditingController _aprsIsPasscodeController;
   late TextEditingController _aprsFiApiKeyController;
+  late TextEditingController _repeaterBookTokenController;
   late TextEditingController _webPortController;
   late TextEditingController _agwpePortController;
   late TextEditingController _airplaneUrlController;
@@ -112,6 +114,11 @@ class _SettingsDialogState extends State<SettingsDialog>
   bool _aprsFiTestOk = false;
   // Messages returned by the most recent successful aprs.fi test, shown on tap.
   List<AprsFiMessage> _aprsFiTestMessages = const [];
+
+  // RepeaterBook token "Test" state.
+  bool _repeaterBookTesting = false;
+  String _repeaterBookTestResult = '';
+  bool _repeaterBookTestOk = false;
 
   // EchoLink credential "Test" state.
   bool _echoLinkTesting = false;
@@ -306,6 +313,9 @@ class _SettingsDialogState extends State<SettingsDialog>
     _aprsFiApiKeyController = TextEditingController(
       text: _settings.aprsFiApiKey,
     );
+    _repeaterBookTokenController = TextEditingController(
+      text: _settings.repeaterBookToken,
+    );
     _webPortController = TextEditingController(
       text: _settings.webServerPort.toString(),
     );
@@ -392,6 +402,7 @@ class _SettingsDialogState extends State<SettingsDialog>
     _aprsIsPortController.dispose();
     _aprsIsPasscodeController.dispose();
     _aprsFiApiKeyController.dispose();
+    _repeaterBookTokenController.dispose();
     _webPortController.dispose();
     _agwpePortController.dispose();
     _airplaneUrlController.dispose();
@@ -782,6 +793,62 @@ class _SettingsDialogState extends State<SettingsDialog>
     }
   }
 
+  /// Tests the entered RepeaterBook token with a small live query and reports
+  /// whether RepeaterBook accepted it.
+  Future<void> _testRepeaterBookToken() async {
+    final token = _repeaterBookTokenController.text.trim();
+    if (token.isEmpty) {
+      setState(() {
+        _repeaterBookTestOk = false;
+        _repeaterBookTestResult = 'Enter a token to test.';
+      });
+      return;
+    }
+
+    setState(() {
+      _repeaterBookTesting = true;
+      _repeaterBookTestResult = 'Testing…';
+    });
+
+    final client = RepeaterBookClient();
+    try {
+      // A tiny, specific query keeps the response small while still exercising
+      // the token and User-Agent that a real search would use.
+      final results = await client.search(
+        RepeaterBookQuery(
+          country: 'United States',
+          state: 'Virginia',
+          city: 'Arlington',
+          mode: 'analog',
+        ),
+        token,
+      );
+      if (!mounted) return;
+      setState(() {
+        _repeaterBookTesting = false;
+        _repeaterBookTestOk = true;
+        _repeaterBookTestResult =
+            'Token works — RepeaterBook returned ${results.length} repeater(s).';
+      });
+    } on RepeaterBookException catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _repeaterBookTesting = false;
+        _repeaterBookTestOk = false;
+        _repeaterBookTestResult = e.message;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _repeaterBookTesting = false;
+        _repeaterBookTestOk = false;
+        _repeaterBookTestResult = 'RepeaterBook test failed: $e';
+      });
+    } finally {
+      client.close();
+    }
+  }
+
   /// Shows the messages returned by a successful aprs.fi test, each labelled
   /// with the time aprs.fi recorded it, so the user can see what was retrieved.
   void _showAprsFiTestMessagesDialog() {
@@ -841,6 +908,7 @@ class _SettingsDialogState extends State<SettingsDialog>
     _settings.aprsIsServer = _aprsIsServerController.text.trim();
     _settings.aprsIsPort = int.tryParse(_aprsIsPortController.text) ?? 14580;
     _settings.aprsFiApiKey = _aprsFiApiKeyController.text.trim();
+    _settings.repeaterBookToken = _repeaterBookTokenController.text.trim();
     _settings.webServerPort = int.tryParse(_webPortController.text) ?? 8080;
     _settings.agwpeServerPort = int.tryParse(_agwpePortController.text) ?? 8000;
     _settings.airplaneServerUrl = _airplaneUrlController.text;
@@ -2648,6 +2716,97 @@ class _SettingsDialogState extends State<SettingsDialog>
                 ],
               ],
             ),
+          ),
+          const SizedBox(height: 16),
+          _buildRepeaterBookSection(),
+        ],
+      ),
+    );
+  }
+
+  /// RepeaterBook API token entry (Comms tab). RepeaterBook is a distributed
+  /// app: each user generates their own per-user token for the approved
+  /// HTCommander app and pastes it here. Stored blanked, like a password.
+  Widget _buildRepeaterBookSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _sectionDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('RepeaterBook', style: _sectionTitleStyle()),
+          const SizedBox(height: 8),
+          const Text(
+            'Search the RepeaterBook directory for nearby repeaters and add '
+            'them to your radio. RepeaterBook requires each user to use their '
+            'own API token.',
+            style: DialogStyles.bodyStyle,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'To get a token: sign in to your free RepeaterBook account, open '
+            'the API Apps page, generate a token for HTCommander, then paste it '
+            'below. The token is shown only once.',
+            style: DialogStyles.bodyStyle,
+          ),
+          const SizedBox(height: 4),
+          InkWell(
+            onTap: () =>
+                _launchUrl('https://www.repeaterbook.com/user/api_apps.php'),
+            child: const Text(
+              'repeaterbook.com/user/api_apps.php',
+              style: DialogStyles.linkStyle,
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text('RepeaterBook API token',
+              style: DialogStyles.labelStyle),
+          const SizedBox(height: 4),
+          TextField(
+            controller: _repeaterBookTokenController,
+            obscureText: true,
+            enableSuggestions: false,
+            autocorrect: false,
+            decoration: _inputDecoration(
+              hintText: 'Paste your RepeaterBook API token',
+            ),
+            onChanged: (_) {
+              // Rebuild so the Test button's enabled state tracks the field and
+              // any prior result is cleared.
+              setState(() => _repeaterBookTestResult = '');
+            },
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: (_repeaterBookTokenController.text.trim().isNotEmpty &&
+                        !_repeaterBookTesting)
+                    ? _testRepeaterBookToken
+                    : null,
+                child: const Text('Test'),
+              ),
+              if (_repeaterBookTestResult.isNotEmpty) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _repeaterBookTestResult,
+                    style: TextStyle(
+                      color: _repeaterBookTesting
+                          ? Theme.of(context).colorScheme.onSurfaceVariant
+                          : (_repeaterBookTestOk
+                              ? Colors.green.shade700
+                              : Colors.red.shade700),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Data courtesy of RepeaterBook.com',
+            style: _secondaryStyle(),
           ),
         ],
       ),

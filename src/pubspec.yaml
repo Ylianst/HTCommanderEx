@@ -47,6 +47,10 @@ dependencies:
   permission_handler: ^13.0.1
   path_provider: ^2.1.4
   crypto: ^3.0.0
+  # OS-native encrypted storage for secrets (RepeaterBook token): Keychain
+  # (iOS/macOS), Keystore/EncryptedSharedPreferences (Android), DPAPI (Windows),
+  # libsecret (Linux). Mirrors the C# ISecretStore approach.
+  flutter_secure_storage: ^10.3.1
   es_compression: ^2.0.13
   http: ^1.6.0
   flutter_pcm_sound: ^3.1.6

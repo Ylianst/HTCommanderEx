@@ -43,6 +43,10 @@ class AppSettings {
   // APRS.fi API key used to backfill missed APRS messages - APRS tab
   String aprsFiApiKey;
 
+  // RepeaterBook per-user API token (Comms tab). Each user generates their own
+  // token for the approved HTCommander app; used by the RepeaterBook search.
+  String repeaterBookToken;
+
   // Voice tab
   String voiceLanguage;
   String voiceModel;
@@ -187,6 +191,7 @@ class AppSettings {
     this.aprsIsPasscode = '',
     this.aprsCloudNotifications = false,
     this.aprsFiApiKey = '',
+    this.repeaterBookToken = '',
     this.voiceLanguage = 'auto',
     this.voiceModel = 'sense-voice',
     this.voice = '',
@@ -239,6 +244,7 @@ class AppSettings {
     String? aprsIsPasscode,
     bool? aprsCloudNotifications,
     String? aprsFiApiKey,
+    String? repeaterBookToken,
     String? voiceLanguage,
     String? voiceModel,
     String? voice,
@@ -291,6 +297,7 @@ class AppSettings {
       aprsCloudNotifications:
           aprsCloudNotifications ?? this.aprsCloudNotifications,
       aprsFiApiKey: aprsFiApiKey ?? this.aprsFiApiKey,
+      repeaterBookToken: repeaterBookToken ?? this.repeaterBookToken,
       voiceLanguage: voiceLanguage ?? this.voiceLanguage,
       voiceModel: voiceModel ?? this.voiceModel,
       voice: voice ?? this.voice,
@@ -372,6 +379,8 @@ class AppSettings {
           (DataBroker.getValue<int>(0, 'AprsCloudNotifications', 0) ?? 0) == 1,
       aprsFiApiKey:
           DataBroker.getValue<String>(0, 'AprsFiApiKey', '') ?? '',
+      repeaterBookToken:
+          DataBroker.getValue<String>(0, 'RepeaterBookToken', '') ?? '',
       voiceLanguage:
           DataBroker.getValue<String>(0, 'VoiceLanguage', 'auto') ?? 'auto',
       voiceModel:
@@ -495,6 +504,11 @@ class AppSettings {
       deviceId: 0,
       name: 'AprsFiApiKey',
       data: aprsFiApiKey,
+    );
+    DataBroker.dispatch(
+      deviceId: 0,
+      name: 'RepeaterBookToken',
+      data: repeaterBookToken,
     );
     DataBroker.dispatch(
       deviceId: 0,

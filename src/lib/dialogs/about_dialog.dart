@@ -118,6 +118,10 @@ class HTAboutDialog extends StatelessWidget {
                                   'APRS message backfill via aprs.fi,\ncourtesy of Heikki Hannikainen, OH7LZB',
                                   'https://aprs.fi',
                                 ),
+                                _buildAttribution(
+                                  'Repeater directory data courtesy of\nRepeaterBook.com',
+                                  'https://www.repeaterbook.com',
+                                ),
                               ],
                             ),
                           ),

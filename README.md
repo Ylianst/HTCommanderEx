@@ -70,3 +70,5 @@ This tool is based on the decoding work done by Kyle Husmann, KC3SLD and this [B
 Map data provided by [openstreetmap.org](https://openstreetmap.org), the project that creates and distributes free geographic data for the world.
 
 APRS message backfill uses the [aprs.fi](https://aprs.fi) API, courtesy of Heikki Hannikainen, OH7LZB, to retrieve messages received while HTCommander was offline.
+
+Repeater directory search is powered by [RepeaterBook](https://www.repeaterbook.com). Data courtesy of RepeaterBook.com. RepeaterBook access requires each user to generate their own personal API token for HTCommander.

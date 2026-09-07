@@ -23,6 +23,7 @@ import 'dialogs/radio_connection_dialog.dart';
 import 'dialogs/radio_info_dialog.dart';
 import 'dialogs/region_storage_dialog.dart';
 import 'dialogs/rename_regions_dialog.dart';
+import 'dialogs/repeaterbook_dialog.dart';
 import 'dialogs/app_settings.dart';
 import 'dialogs/settings_dialog.dart';
 import 'handlers/frame_deduplicator.dart';
@@ -41,6 +42,7 @@ import 'handlers/home_assistant_handler.dart';
 import 'handlers/debug_log_handler.dart';
 import 'handlers/location_handler.dart';
 import 'gps/gps_serial_handler.dart';
+import 'gps/gps_data.dart';
 import 'torrent/torrent_handler.dart';
 import 'torrent/torrent_store.dart';
 // EchoLink relies on dart:io sockets + native audio; use a no-op stub on web so
@@ -258,6 +260,10 @@ Future<void> _startApp(List<String> args) async {
 
   // Initialize the DataBroker for cross-component communication
   await DataBroker.initialize();
+
+  // Load encrypted secrets (e.g. the RepeaterBook token) into the broker and
+  // migrate any legacy plaintext copies. Must run before settings are read.
+  await DataBroker.loadSecrets();
 
   // When this is the web build served by the desktop app, device-0 settings are
   // read from and written to the host over the bridge instead of being saved in
@@ -2558,6 +2564,81 @@ class _MainFormState extends State<MainForm>
     );
   }
 
+  /// Opens the RepeaterBook dialog. The user needs a personal API token (set on
+  /// the Comms tab in Settings). Search results appear on the left and can be
+  /// dragged onto the radio's channel slots on the right; nothing is written
+  /// until the user confirms.
+  Future<void> _onSearchRepeaterBook() async {
+    final messenger = mounted ? ScaffoldMessenger.of(context) : null;
+
+    final token =
+        (_broker.getValue<String>(0, 'RepeaterBookToken', '') ?? '').trim();
+    if (token.isEmpty) {
+      messenger?.showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Set your RepeaterBook API token in Settings → Comms first.',
+          ),
+          action: SnackBarAction(
+            label: 'Settings',
+            onPressed: _onSettings,
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Current location (for nearest-first sorting): live GPS fix, else the
+    // manually configured location from the License tab.
+    double? lat;
+    double? lon;
+    final gps = _broker.getValueDynamic(1, 'GpsData');
+    if (gps is GpsData && gps.isFixed) {
+      lat = gps.latitude;
+      lon = gps.longitude;
+    } else if (gps is Map) {
+      final g = GpsData.fromJson(gps.cast<String, dynamic>());
+      if (g.isFixed) {
+        lat = g.latitude;
+        lon = g.longitude;
+      }
+    }
+    if (lat == null) {
+      final mLat = _broker.getValue<double>(0, 'ManualLatitude', 0.0) ?? 0.0;
+      final mLon = _broker.getValue<double>(0, 'ManualLongitude', 0.0) ?? 0.0;
+      if (mLat != 0 || mLon != 0) {
+        lat = mLat;
+        lon = mLon;
+      }
+    }
+
+    // The radio's current channels (right column). Empty when no radio is
+    // connected; the dialog still lets the user browse the search results.
+    final raw = _broker.getValueDynamic(_currentRadioDeviceId, 'Channels');
+    final radioChannels = (raw is List)
+        ? raw
+              .whereType<Map>()
+              .map((m) => RadioChannelInfo.fromJson(m.cast<String, dynamic>()))
+              .toList()
+        : <RadioChannelInfo>[];
+    final radioName = _broker.getValue<String>(
+      _currentRadioDeviceId,
+      'FriendlyName',
+      '',
+    );
+
+    if (!mounted) return;
+    await showRepeaterBookDialog(
+      context,
+      token: token,
+      deviceId: _currentRadioDeviceId,
+      radioName: radioName,
+      radioChannels: radioChannels,
+      currentLat: lat,
+      currentLon: lon,
+    );
+  }
+
   /// Programs every region of the connected radio from a previously exported
   /// all-regions file. Confirms first, since every region is reprogrammed.
   Future<void> _importAllRegions(AllRegionsFile data) async {
@@ -3231,6 +3312,10 @@ class _MainFormState extends State<MainForm>
             AppMenuAction(
               label: l10n.menuImportChannels,
               onPressed: _radioLocked ? null : _onImportChannels,
+            ),
+            AppMenuAction(
+              label: 'RepeaterBook...',
+              onPressed: _radioLocked ? null : _onSearchRepeaterBook,
             ),
           ],
           const AppMenuDivider(hideOnMacOS: true),

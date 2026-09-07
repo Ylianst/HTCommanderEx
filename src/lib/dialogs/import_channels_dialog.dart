@@ -11,6 +11,7 @@ import 'dialog_utils.dart';
 import '../radio/radio_models.dart';
 import '../services/data_broker_client.dart';
 import '../utils/channel_colors.dart';
+import 'channel_context_menu.dart';
 import 'channel_details_dialog.dart';
 
 /// Opens the channel import dialog.
@@ -352,6 +353,12 @@ class _ImportChannelsDialogState extends State<ImportChannelsDialog> {
       highlight: selected,
       onTap: () => setState(() => _selectedImportedIndex = index),
       onInfo: () => showChannelDetailsDialog(context, channel: channel),
+      onContextMenu: (pos) => showChannelContextMenu(
+        context: context,
+        globalPosition: pos,
+        channel: channel,
+        onDetails: () => showChannelDetailsDialog(context, channel: channel),
+      ),
     );
 
     return Draggable<RadioChannelInfo>(
@@ -404,6 +411,22 @@ class _ImportChannelsDialogState extends State<ImportChannelsDialog> {
             title: isStaged ? 'Pending: ${_slotLabel(slot)}' : null,
           ),
           onClear: isStaged ? () => _clearStaged(slot.channelId) : null,
+          onContextMenu: (pos) => showChannelContextMenu(
+            context: context,
+            globalPosition: pos,
+            channel: isStaged
+                ? channel.copyWith(channelId: slot.channelId)
+                : slot,
+            onDetails: () => showChannelDetailsDialog(
+              context,
+              channel: isStaged
+                  ? channel.copyWith(channelId: slot.channelId)
+                  : slot,
+              title: isStaged ? 'Pending: ${_slotLabel(slot)}' : null,
+            ),
+            onPaste: (pasted) => _assign(pasted, slot.channelId),
+            onClear: isStaged ? () => _clearStaged(slot.channelId) : null,
+          ),
         );
       },
     );
@@ -419,6 +442,7 @@ class _ImportChannelsDialogState extends State<ImportChannelsDialog> {
     VoidCallback? onTap,
     VoidCallback? onInfo,
     VoidCallback? onClear,
+    void Function(Offset globalPosition)? onContextMenu,
   }) {
     final freq = freqHz > 0
         ? '${(freqHz / 1000000).toStringAsFixed(3)} MHz'
@@ -426,6 +450,12 @@ class _ImportChannelsDialogState extends State<ImportChannelsDialog> {
     final palette = ChannelPalette.of(context);
     return GestureDetector(
       onTap: onTap,
+      onSecondaryTapDown: onContextMenu == null
+          ? null
+          : (d) => onContextMenu(d.globalPosition),
+      onLongPressStart: onContextMenu == null
+          ? null
+          : (d) => onContextMenu(d.globalPosition),
       child: Container(
         width: width,
         height: _tileHeight,
