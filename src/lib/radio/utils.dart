@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'dart:math' as math;
 import 'dart:convert';
 
+import 'package:fast_gbk/fast_gbk.dart';
+
 /// Utility functions for radio protocol handling
 class RadioUtils {
   /// Decodes a short binary message format used by BSS protocol
@@ -253,9 +255,27 @@ class RadioUtils {
     return result.trim();
   }
 
-  /// Encode string to UTF-8 bytes, padded to specified length with nulls
+  /// Truncate [value] to at most [maxBytes] UTF-8 bytes without splitting a
+  /// multi-byte character. Returns the longest prefix of [value] that fits.
+  static String truncateUtf8(String value, int maxBytes) {
+    if (maxBytes <= 0) return '';
+    final bytes = utf8.encode(value);
+    if (bytes.length <= maxBytes) return value;
+    // Walk back from the cut point to a UTF-8 character boundary. Continuation
+    // bytes match 10xxxxxx (0x80..0xBF); a lead/ASCII byte starts a character.
+    int end = maxBytes;
+    while (end > 0 && (bytes[end] & 0xC0) == 0x80) {
+      end--;
+    }
+    return utf8.decode(bytes.sublist(0, end), allowMalformed: true);
+  }
+
+  /// Encode string to UTF-8 bytes, padded to specified length with nulls. If
+  /// the encoded value is longer than [length], it is truncated on a character
+  /// boundary so a multi-byte character is never split (which would store
+  /// malformed bytes on the radio).
   static Uint8List encodeUtf8Padded(String value, int length) {
-    final encoded = utf8.encode(value);
+    final encoded = utf8.encode(truncateUtf8(value, length));
     final result = Uint8List(length);
     final copyLen = math.min(encoded.length, length);
     for (int i = 0; i < copyLen; i++) {
@@ -267,5 +287,71 @@ class RadioUtils {
   /// Encode string to variable-length UTF-8 bytes (no padding).
   static Uint8List encodeUtf8(String value) {
     return Uint8List.fromList(utf8.encode(value));
+  }
+
+  /// GBK codec (code page 936). The radio stores channel and region names in
+  /// GBK, not UTF-8, so Chinese names must be decoded/encoded with this to
+  /// match the vendor application and the radio's own display.
+  static final GbkCodec _gbk = GbkCodec(allowMalformed: true);
+
+  /// Encode a single character to GBK, returning null if it has no GBK mapping.
+  static List<int>? _gbkEncodeChar(int rune) {
+    try {
+      final bytes = _gbk.encode(String.fromCharCode(rune));
+      return bytes.isEmpty ? null : bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Decode a GBK string from bytes, stopping at the first null (padding) byte
+  /// and trimming surrounding whitespace. Returns empty string if the offset is
+  /// out of bounds. GBK second bytes never use 0x00, so a null byte always
+  /// marks the end of the stored name.
+  static String decodeGbkTrimmed(Uint8List data, int offset, int length) {
+    if (offset >= data.length) return '';
+    final actualLength = math.min(length, data.length - offset);
+    if (actualLength <= 0) return '';
+    final limit = offset + actualLength;
+    int end = offset;
+    while (end < limit && data[end] != 0) {
+      end++;
+    }
+    if (end == offset) return '';
+    return _gbk.decode(data.sublist(offset, end)).trim();
+  }
+
+  /// Truncate [value] to at most [maxBytes] GBK bytes without splitting a
+  /// multi-byte character. Characters with no GBK mapping are skipped.
+  static String truncateGbk(String value, int maxBytes) {
+    if (maxBytes <= 0) return '';
+    final buffer = StringBuffer();
+    int used = 0;
+    for (final rune in value.runes) {
+      final bytes = _gbkEncodeChar(rune);
+      if (bytes == null) continue;
+      if (used + bytes.length > maxBytes) break;
+      buffer.writeCharCode(rune);
+      used += bytes.length;
+    }
+    return buffer.toString();
+  }
+
+  /// Encode [value] to GBK bytes, padded to [length] with nulls. If the encoded
+  /// value is longer than [length] it is truncated on a character boundary so a
+  /// multi-byte GBK character is never split (which would store malformed bytes
+  /// on the radio). Characters with no GBK mapping are skipped.
+  static Uint8List encodeGbkPadded(String value, int length) {
+    final result = Uint8List(length);
+    int used = 0;
+    for (final rune in value.runes) {
+      final bytes = _gbkEncodeChar(rune);
+      if (bytes == null) continue;
+      if (used + bytes.length > length) break;
+      for (final b in bytes) {
+        result[used++] = b;
+      }
+    }
+    return result;
   }
 }

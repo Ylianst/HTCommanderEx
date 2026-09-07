@@ -10,10 +10,10 @@ READ_REGION_NAME replies). Edited names are written back to the radio via the
 */
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../l10n/app_localizations.dart';
 import '../services/data_broker_client.dart';
+import '../utils/gbk_input_formatter.dart';
 import 'dialog_utils.dart';
 
 /// Maximum number of characters a region name may contain (matches the radio's
@@ -210,9 +210,8 @@ class _RenameRegionsDialogState extends State<_RenameRegionsDialog> {
                               Expanded(
                                 child: TextField(
                                   controller: _controllers[i],
-                                  maxLength: _kMaxRegionNameLength,
                                   inputFormatters: [
-                                    LengthLimitingTextInputFormatter(
+                                    GbkLengthLimitingTextInputFormatter(
                                       _kMaxRegionNameLength,
                                     ),
                                   ],

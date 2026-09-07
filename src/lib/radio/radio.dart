@@ -1720,7 +1720,7 @@ class Radio implements FirmwareRadio {
   /// the radio to acknowledge and be re-read.
   void setRegionName(int region, String name) {
     if (info == null || region < 0 || region >= info!.regionCount) return;
-    final nameBytes = RadioUtils.encodeUtf8Padded(name, _regionNameLength);
+    final nameBytes = RadioUtils.encodeGbkPadded(name, _regionNameLength);
     final payload = Uint8List(1 + _regionNameLength);
     payload[0] = region;
     payload.setRange(1, 1 + _regionNameLength, nameBytes);
@@ -1734,7 +1734,7 @@ class Radio implements FirmwareRadio {
     // name as the radio will (truncated to the fixed byte length) so a later
     // READ_REGION_NAME reply produces an identical value.
     if (region < regionNames.length) {
-      regionNames[region] = RadioUtils.decodeUtf8Trimmed(
+      regionNames[region] = RadioUtils.decodeGbkTrimmed(
         nameBytes,
         0,
         _regionNameLength,
@@ -3158,7 +3158,7 @@ class Radio implements FirmwareRadio {
     _onReadReplyReceived(RadioBasicCommand.readRegionName, region);
     if (data[4] != 0) return;
     if (region < 0 || region >= regionNames.length) return;
-    final name = RadioUtils.decodeUtf8Trimmed(data, 6, data.length - 6);
+    final name = RadioUtils.decodeGbkTrimmed(data, 6, data.length - 6);
     regionNames[region] = name;
     _dispatch(
       'RegionNames',

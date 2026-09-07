@@ -53,6 +53,9 @@ dependencies:
   flutter_secure_storage: ^10.3.1
   es_compression: ^2.0.13
   http: ^1.6.0
+  # GBK/GB2312 codec: the radio stores channel and region names in GBK (code
+  # page 936), not UTF-8, so Chinese names round-trip with the vendor app.
+  fast_gbk: ^1.0.0
   flutter_pcm_sound: ^3.1.6
   audioplayers: ^6.7.1
   intl: ^0.20.2

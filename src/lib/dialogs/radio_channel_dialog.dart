@@ -10,6 +10,7 @@ import 'dialog_utils.dart';
 import '../l10n/app_localizations.dart';
 import '../services/data_broker_client.dart';
 import '../radio/radio_models.dart';
+import '../utils/gbk_input_formatter.dart';
 
 /// Opens the channel editor for the given [channelId] on the connected radio
 /// identified by [deviceId]. On OK the edited channel is pushed to the radio
@@ -470,7 +471,7 @@ class _RadioChannelDialogState extends State<RadioChannelDialog> {
           const SizedBox(height: 4),
           TextField(
             controller: _nameController,
-            maxLength: 10,
+            inputFormatters: [GbkLengthLimitingTextInputFormatter(10)],
             decoration: _inputDecoration(
               hintText: l10n.chChannelNameHint,
             ).copyWith(counterText: ''),
@@ -543,7 +544,7 @@ class _RadioChannelDialogState extends State<RadioChannelDialog> {
           const SizedBox(height: 4),
           TextField(
             controller: _nameController,
-            maxLength: 10,
+            inputFormatters: [GbkLengthLimitingTextInputFormatter(10)],
             decoration: _inputDecoration(
               hintText: l10n.chChannelNameHint,
             ).copyWith(counterText: ''),

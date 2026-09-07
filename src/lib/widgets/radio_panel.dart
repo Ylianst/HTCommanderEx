@@ -3428,6 +3428,36 @@ class _RadioPanelControlState extends State<RadioPanelControl> {
                 _showChannelFrequency &&
                 channel.rxFreq > 0 &&
                 constraints.maxHeight >= 28;
+            final String label = channel.name.isNotEmpty
+                ? channel.name
+                : 'Ch ${channel.channelId + 1}';
+            // When the frequency isn't shown, enlarge the name to the biggest
+            // size that still fits on one line. Wide names (e.g. long Chinese)
+            // that don't fit fall back to the base size and ellipsize.
+            double nameFontSize = 11;
+            if (!showFrequency &&
+                constraints.hasBoundedWidth &&
+                constraints.hasBoundedHeight) {
+              final td = Directionality.of(context);
+              for (final candidate in const [20.0, 17.0, 14.0]) {
+                final painter = TextPainter(
+                  text: TextSpan(
+                    text: label,
+                    style: TextStyle(
+                      fontSize: candidate,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  maxLines: 1,
+                  textDirection: td,
+                )..layout();
+                if (painter.width <= constraints.maxWidth &&
+                    painter.height <= constraints.maxHeight) {
+                  nameFontSize = candidate;
+                  break;
+                }
+              }
+            }
             return Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: showFrequency
@@ -3435,11 +3465,9 @@ class _RadioPanelControlState extends State<RadioPanelControl> {
                   : CrossAxisAlignment.center,
               children: [
                 Text(
-                  channel.name.isNotEmpty
-                      ? channel.name
-                      : 'Ch ${channel.channelId + 1}',
+                  label,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: nameFontSize,
                     fontWeight: FontWeight.bold,
                     color: palette.onChannel,
                   ),

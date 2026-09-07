@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import '../radio/radio_models.dart';
 import '../services/data_broker_client.dart';
 import '../utils/channel_import.dart';
+import '../utils/gbk_input_formatter.dart';
 import 'dialog_utils.dart';
 
 /// Number of local storage slots offered for parked regions.
@@ -624,7 +625,7 @@ class _RegionStorageDialogState extends State<_RegionStorageDialog> {
         content: TextField(
           controller: controller,
           autofocus: true,
-          maxLength: 10,
+          inputFormatters: [GbkLengthLimitingTextInputFormatter(10)],
           decoration: const InputDecoration(
             hintText: 'Region name',
             counterText: '',

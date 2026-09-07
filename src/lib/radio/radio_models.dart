@@ -553,7 +553,7 @@ class RadioChannelInfo {
       fixedBandwidth = (RadioUtils.getByte(msg, 19) & 0x40) != 0,
       fixedTxPower = (RadioUtils.getByte(msg, 19) & 0x20) != 0,
       mute = (RadioUtils.getByte(msg, 19) & 0x10) != 0,
-      name = RadioUtils.decodeUtf8Trimmed(msg, 20, 10);
+      name = RadioUtils.decodeGbkTrimmed(msg, 20, 10);
 
   /// Frequency display in MHz with 3 decimal places
   String get frequencyDisplay {
@@ -588,7 +588,7 @@ class RadioChannelInfo {
         (fixedTxPower ? 0x20 : 0) |
         (mute ? 0x10 : 0);
 
-    final nameBytes = RadioUtils.encodeUtf8Padded(name, 10);
+    final nameBytes = RadioUtils.encodeGbkPadded(name, 10);
     for (int i = 0; i < 10; i++) {
       r[15 + i] = nameBytes[i];
     }
