@@ -3431,15 +3431,26 @@ class _RadioPanelControlState extends State<RadioPanelControl> {
             final String label = channel.name.isNotEmpty
                 ? channel.name
                 : 'Ch ${channel.channelId + 1}';
-            // When the frequency isn't shown, enlarge the name to the biggest
-            // size that still fits on one line. Wide names (e.g. long Chinese)
-            // that don't fit fall back to the base size and ellipsize.
+            // When the frequency isn't shown, size the name to the biggest
+            // step that fits on one line, shrinking further on narrow screens
+            // before finally ellipsizing very wide names (e.g. long Chinese).
             double nameFontSize = 11;
             if (!showFrequency &&
                 constraints.hasBoundedWidth &&
                 constraints.hasBoundedHeight) {
               final td = Directionality.of(context);
-              for (final candidate in const [20.0, 17.0, 14.0]) {
+              const candidates = [
+                20.0,
+                17.0,
+                14.0,
+                12.0,
+                11.0,
+                10.0,
+                9.0,
+                8.0,
+              ];
+              nameFontSize = candidates.last;
+              for (final candidate in candidates) {
                 final painter = TextPainter(
                   text: TextSpan(
                     text: label,
