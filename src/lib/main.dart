@@ -1039,6 +1039,8 @@ class _MainFormState extends State<MainForm>
       false; // Tab visibility (Winlink/Mail, Terminal, BBS, Torrent)
   bool _winlinkPasswordSet =
       false; // Winlink/Mail tab visibility (requires a password)
+  bool _repeaterBookTokenSet =
+      false; // "RepeaterBook..." menu item visibility (requires a valid token)
 
   // Width threshold for compact mode (Radio becomes a tab instead of side panel)
   static const double compactWidthThreshold = 800;
@@ -1411,6 +1413,9 @@ class _MainFormState extends State<MainForm>
     _winlinkPasswordSet =
         (DataBroker.getValue<String>(0, 'WinlinkPassword', '') ?? '')
             .isNotEmpty;
+    _repeaterBookTokenSet = _isValidRepeaterBookToken(
+      DataBroker.getValue<String>(0, 'RepeaterBookToken', '') ?? '',
+    );
     _satelliteSupport =
         (DataBroker.getValue<int>(0, 'SatelliteSupport', 0) ?? 0) == 1;
     _showTabNames = (DataBroker.getValue<int>(0, 'ShowTabNames', 1) ?? 1) == 1;
@@ -1428,6 +1433,15 @@ class _MainFormState extends State<MainForm>
     final hiddenTabsStr =
         DataBroker.getValue<String>(0, 'HiddenTabs', '') ?? '';
     _hiddenTabs = hiddenTabsStr.isEmpty ? {} : hiddenTabsStr.split(',').toSet();
+  }
+
+  /// RepeaterBook personal API tokens are issued with an `rbuapp_` prefix. This
+  /// is a lightweight sanity check so the "RepeaterBook..." menu item only
+  /// appears once a plausibly valid token has been entered in Settings.
+  static bool _isValidRepeaterBookToken(String token) {
+    const prefix = 'rbuapp_';
+    final t = token.trim();
+    return t.toLowerCase().startsWith(prefix) && t.length > prefix.length;
   }
 
   /// On the HTCommander-hosted web build, establish the persistent session to
@@ -3313,10 +3327,11 @@ class _MainFormState extends State<MainForm>
               label: l10n.menuImportChannels,
               onPressed: _radioLocked ? null : _onImportChannels,
             ),
-            AppMenuAction(
-              label: 'RepeaterBook...',
-              onPressed: _radioLocked ? null : _onSearchRepeaterBook,
-            ),
+            if (_repeaterBookTokenSet)
+              AppMenuAction(
+                label: 'RepeaterBook...',
+                onPressed: _radioLocked ? null : _onSearchRepeaterBook,
+              ),
           ],
           const AppMenuDivider(hideOnMacOS: true),
           AppMenuAction(
